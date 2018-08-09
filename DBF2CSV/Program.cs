@@ -91,12 +91,12 @@ namespace DBF2CSV
                         }
 
                         // Appending every 100ms ;-)
-                        Thread.Sleep(100);
+                        Thread.Sleep(1);
                     }
                     else
                     {
                         //Console.WriteLine("Log empty! Fetching in 10 seconds again!");
-                        Thread.Sleep(10000);
+                        Thread.Sleep(1000);
                     }
                 }
             });
