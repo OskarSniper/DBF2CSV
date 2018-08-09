@@ -11,7 +11,6 @@ namespace DBF2CSV
 {
     class Program
     {
-        private static NonblockingQueue<QueueObject> WriterQueue = new NonblockingQueue<QueueObject>();
         static void Main(string[] args)
         {
             Console.WriteLine("Copyright (c) 2018 Sebastian Waldbauer");
@@ -26,8 +25,6 @@ namespace DBF2CSV
                 DataSet dataSet = new DataSet();
                 dbDataAdapter.Fill(dataSet);
                 objCon.Close();
-
-                runFileWriterThread();
 
                 for (int i = 0; i < dataSet.Tables.Count; i++)
                 {
@@ -44,63 +41,28 @@ namespace DBF2CSV
                     }
 
                     Console.WriteLine("Found " + dataSet.Tables[i].Rows.Count + " rows & " + dataSet.Tables[i].Columns.Count + " columns");
-                    for (int ix = 0; ix < dataSet.Tables[i].Rows.Count; ix++)
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(finalOutputFile))
                     {
-                        string str = string.Empty;
-                        for (int iy = 0; iy < dataSet.Tables[i].Columns.Count; iy++)
+                        Console.WriteLine("Writing to file [" + finalOutputFile + "]");
+                        for (int ix = 0; ix < dataSet.Tables[i].Rows.Count; ix++)
                         {
-                            str += dataSet.Tables[i].Rows[ix][iy] + ";";
+                            string str = string.Empty;
+                            for (int iy = 0; iy < dataSet.Tables[i].Columns.Count; iy++)
+                            {
+                                str += dataSet.Tables[i].Rows[ix][iy] + ";";
+                            }
+                            file.WriteLine(str);
                         }
-                        QueueObject qo = new QueueObject();
-                        qo.Path = finalOutputFile;
-                        qo.Data = str;
-                        WriterQueue.Enqueue(qo);
+
+                        Console.WriteLine("Finished writing to [" + finalOutputFile + "]");
                     }
                 }
-            } catch(Exception e)
+                Console.WriteLine("Finished!");
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
-
-            Console.ReadLine();
-        }
-
-        private static void runFileWriterThread()
-        {
-            Thread WritingThread = new Thread(() => {
-                Thread.CurrentThread.IsBackground = true;
-
-                while (true)
-                {
-                    if (WriterQueue.Count > 0)
-                    {
-                        QueueObject item;
-                        WriterQueue.Dequeue(out item);
-
-                        const int BufferSize = 65536;
-                        try
-                        {
-                            Console.Write("\rWait till it's 0... Size " + WriterQueue.Count);
-                            StreamWriter writer = new StreamWriter(item.Path, true, Encoding.UTF8, BufferSize);
-                            writer.WriteLine(item.Data);
-                            writer.Close();
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Error while writing ThreadID: " + Thread.CurrentThread.ManagedThreadId + "!" + e);
-                        }
-
-                        // Appending every 100ms ;-)
-                        Thread.Sleep(1);
-                    }
-                    else
-                    {
-                        //Console.WriteLine("Log empty! Fetching in 10 seconds again!");
-                        Thread.Sleep(1000);
-                    }
-                }
-            });
-            WritingThread.Start();
         }
     }
 }
