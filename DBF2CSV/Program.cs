@@ -66,7 +66,6 @@ namespace DBF2CSV
                     }
                 }
                 Console.WriteLine("Finished!");
-                Console.ReadKey();
             }
             catch (Exception e)
             {
