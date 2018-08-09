@@ -44,6 +44,14 @@ namespace DBF2CSV
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(finalOutputFile))
                     {
                         Console.WriteLine("Writing to file [" + finalOutputFile + "]");
+                        // Read header!
+                        string header = string.Empty;
+                        for (int ih = 0; ih < dataSet.Tables[i].Columns.Count; ih++)
+                        {
+                            header += dataSet.Tables[i].Columns[ih].Caption + ";";
+                        }
+                        file.WriteLine(header);
+
                         for (int ix = 0; ix < dataSet.Tables[i].Rows.Count; ix++)
                         {
                             string str = string.Empty;
@@ -58,6 +66,7 @@ namespace DBF2CSV
                     }
                 }
                 Console.WriteLine("Finished!");
+                Console.ReadKey();
             }
             catch (Exception e)
             {
